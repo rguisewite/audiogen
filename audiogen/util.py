@@ -131,7 +131,11 @@ def normalize(generator, min_in=0, max_in=256, min_out=-1, max_out=1):
 
 def hard_clip(generator, min=-1, max=1):
 	while True:
-		sample = next(generator)
+		try:
+			sample = next(generator)
+		except StopIteration:
+			return
+
 		if sample > max:
 			logger.warn("Warning, clipped value %f > max %f" % (sample, max))
 			yield max
@@ -143,10 +147,16 @@ def hard_clip(generator, min=-1, max=1):
 
 def vector_reduce(op, generators):
 	while True:
-		yield reduce(op, [next(g) for g in generators])
+		try:
+			yield reduce(op, [next(g) for g in generators])
+		except StopIteration:
+			return
 def vector_reduce1(op, generators):
 	while True:
-		yield reduce(op, [next(g) for g in generators])
+		try:
+			yield reduce(op, [next(g) for g in generators])
+		except StopIteration:
+			return
 
 def sum(*generators):
 	return vector_reduce(lambda a,b: a + b, generators)
@@ -168,7 +178,10 @@ def volume(gen, dB=0):
 	else:
 		def scale_gen():
 			while True:
-				yield 10 ** (next(dB) / 20.)
+				try:
+					yield 10 ** (next(dB) / 20.)
+				except StopIteration:
+					return
 		scale = scale_gen()
 
 	return envelope(gen, scale)
@@ -177,20 +190,26 @@ def clip(gen, limit):
 	if not isinstance( limit, Iterable ):
 		limit = constant(limit)
 	while True:
-		sample = next(gen)
-		current_limit = next(limit)
-		if math.fabs(sample) > current_limit:
-			yield current_limit * (math.fabs(sample) / sample if sample != 0 else 0)
-		else:
-			yield sample
+		try:
+			sample = next(gen)
+			current_limit = next(limit)
+			if math.fabs(sample) > current_limit:
+				yield current_limit * (math.fabs(sample) / sample if sample != 0 else 0)
+			else:
+				yield sample
+		except StopIteration:
+			return
 
 def envelope(gen, volume):
 	if not isinstance( volume, Iterable ):
 		volume = constant(volume)
 	while True:
-		sample = next(gen)
-		current_volume = next(volume)
-		yield current_volume * sample
+		try:
+			sample = next(gen)
+			current_volume = next(volume)
+			yield current_volume * sample
+		except StopIteration:
+			return
 
 def loop(*gens):
 	loops = [list(gen) for gen in gens]

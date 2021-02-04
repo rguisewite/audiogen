@@ -39,25 +39,34 @@ def white_noise(key=(1,2,3,4,5)):
 	def prng(key):
 		af = arcfour(key)
 		while True:
-			yield next(af) * 2**8 + next(af)
+			try:
+				yield next(af) * 2**8 + next(af)
+			except StopIteration:
+				return
 	return util.normalize(prng(key), 0, 2**16)
 
 def white_noise_samples(key=(1,2,3,4,5)):
 	af = arcfour(key)
 	while True:
-		yield chr(next(af)) + chr(next(af))
+		try:
+			yield chr(next(af)) + chr(next(af))
+		except StopIteration:
+			return
 
 def red_noise(key=(1,2,3,4,5)):
 	def random_walk(key, min=-1024, max=1024):
 		af = arcfour(key)
 		sample = 0
 		while True:
-			sample += next(af) - 128
-			if sample > max:
-				sample = max 
-			elif sample < min:
-				sample = min
-			yield sample
+			try:
+				sample += next(af) - 128
+				if sample > max:
+					sample = max 
+				elif sample < min:
+					sample = min
+				yield sample
+			except StopIteration:
+				return
 	return util.normalize(random_walk(key), -1024, 1024)
 
 '''

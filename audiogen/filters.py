@@ -23,7 +23,11 @@ def iir(A, B):
 		inputs =  collections.deque([0] * len(A), maxlen=len(A))
 		try:
 			while True:
-				inputs.appendleft(next(in_))
+				try:
+					inputs.appendleft(next(in_))
+				except StopIteration:
+					return
+
 				y = sum(a * i for a, i in zip(A, inputs)) \
 					+ sum(b * o for b, o in zip(B, outputs))
 				yield outputs.pop()

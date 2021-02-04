@@ -82,7 +82,7 @@ def sample(generator, min=-1, max=1, width=SAMPLE_WIDTH):
 
 def sample_all(generators, *args, **kwargs):
 	'''Convert list of audio waveform generators into list of packed sample generators.'''
-	return [sample(gen, *args, **kwargs) for gen in  generators]
+	return [sample(gen, *args, **kwargs) for gen in generators]
 
 def interleave(channels):
 	'''
@@ -93,7 +93,10 @@ def interleave(channels):
 	of the channels in the list. 
 	'''
 	while True:
-		yield b"".join([next(channel) for channel in channels])
+		try:
+			yield b"".join([next(channel) for channel in channels])
+		except StopIteration:
+			return
 
 def buffer(stream, buffer_size=BUFFER_SIZE):
 	'''
@@ -105,8 +108,12 @@ def buffer(stream, buffer_size=BUFFER_SIZE):
 	This allows us to outputing big chunks of the audio stream to 
 	disk at once for faster writes.
 	'''
-	i = iter(stream)
-	return iter(lambda: b"".join(itertools.islice(i, buffer_size)), "") 
+	try:
+		i = iter(stream)
+	except StopIteration:
+		return
+
+	return iter(lambda: b"".join(itertools.islice(i, buffer_size)), "")
 	
 
 def wav_samples(channels, sample_width=SAMPLE_WIDTH, raw_samples=False):
@@ -178,6 +185,9 @@ def write_wav(f, channels, sample_width=SAMPLE_WIDTH, raw_samples=False, seekabl
 			logger.debug("Setting frames to: {0}, {1}".format((w.getnframes()), w._nframes))
 	
 	for chunk in buffer(stream):
+		if len( chunk ) == 0:
+			break
+
 		logger.debug("Writing %d bytes..." % len(chunk))
 		if output_seekable:
 			w.writeframes(chunk)
@@ -232,6 +242,9 @@ def play(channels, blocking=True, raw_samples=False):
 	if blocking:
 		try:
 			for chunk in buffer(wavgen, 1024):
+				if len( chunk ) == 0:
+					break
+
 				stream.write(chunk)
 		except Exception:
 			raise
