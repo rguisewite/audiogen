@@ -1,12 +1,12 @@
 # coding=utf8
 
-import audiogen
+import audiogen_p3
 from itertools import izip_longest
 
-unit = audiogen.util.constant(1)
+unit = audiogen_p3.util.constant(1)
 
 def setup_mux():
-	return audiogen.util.mixer((iter(range(10)),), ((unit,),(unit,)))
+	return audiogen_p3.util.mixer((iter(range(10)),), ((unit,),(unit,)))
 
 def test_mux_output_channels():
 	output = setup_mux()

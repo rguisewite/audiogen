@@ -12,12 +12,12 @@ here				= pathlib.Path(__file__).parent.resolve()
 long_description	= ( here / 'README.rst' ).read_text( encoding='utf-8' )
 
 setup(
-	name="audiogen",
-	version="0.1.3",
+	name="audiogen_p3",
+	version="0.0.1",
 	description="Generator based tools for working with audio clips.",
-	author="Christopher H. Casebeer",
-	author_email="",
-	url="https://github.com/casebeer/audiogen",
+	author="Ryan Guisewite",
+	author_email="ryan.guisewite@gmail.com",
+	url="https://github.com/rguisewite/audiogen_p3",
 
 	packages=find_packages(exclude='tests'),
 	install_requires=required_modules,
