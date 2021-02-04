@@ -16,7 +16,8 @@ import sys
 import errno
 import contextlib
 
-from StringIO import StringIO
+from io import StringIO
+from collections import Iterable
 
 from .util import hard_clip
 from .util import normalize
@@ -61,7 +62,7 @@ def file_is_seekable(f):
 	try:
 		f.tell()
 		logger.info("File is seekable!")
-	except IOError, e:
+	except IOError as e:
 		if e.errno == errno.ESPIPE:
 			return False
 		else:
@@ -92,7 +93,7 @@ def interleave(channels):
 	of the channels in the list. 
 	'''
 	while True:
-		yield "".join([channel.next() for channel in channels])
+		yield b"".join([next(channel) for channel in channels])
 
 def buffer(stream, buffer_size=BUFFER_SIZE):
 	'''
@@ -105,11 +106,11 @@ def buffer(stream, buffer_size=BUFFER_SIZE):
 	disk at once for faster writes.
 	'''
 	i = iter(stream)
-	return iter(lambda: "".join(itertools.islice(i, buffer_size)), "") 
+	return iter(lambda: b"".join(itertools.islice(i, buffer_size)), "") 
 	
 
 def wav_samples(channels, sample_width=SAMPLE_WIDTH, raw_samples=False):
-	if hasattr(channels, 'next'):
+	if isinstance( channels, Iterable ):
 		# if passed one generator, we have one channel
 		channels = (channels,)
 	channel_count = len(channels)
@@ -149,7 +150,7 @@ def wave_module_patched():
 
 def write_wav(f, channels, sample_width=SAMPLE_WIDTH, raw_samples=False, seekable=None):
 	stream = wav_samples(channels, sample_width, raw_samples)
-	channel_count = 1 if hasattr(channels, "next") else len(channels)
+	channel_count = 1 if isinstance( channels, Iterable ) else len(channels)
 
 	output_seekable = file_is_seekable(f) if seekable is None else seekable
 
@@ -218,7 +219,7 @@ def play(channels, blocking=True, raw_samples=False):
 	if not pyaudio_loaded:
 		raise Exception("Soundcard playback requires PyAudio. Install with `pip install pyaudio`.")
 
-	channel_count = 1 if hasattr(channels, "next") else len(channels)
+	channel_count = 1 if isinstance( channels, Iterable ) else len( channels )
 	wavgen = wav_samples(channels, raw_samples=raw_samples)
 	p = pyaudio.PyAudio()
 	stream = p.open(
