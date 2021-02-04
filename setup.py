@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 
 from setuptools import setup, find_packages
+import pathlib
 
 required_modules = []
 extras_require = {
 	'soundcard_playback': ['pyaudio'],
 }
 
-with open("README.rst", "rb") as f:
-	readme = f.read().decode('utf8')
+here				= pathlib.Path(__file__).parent.resolve()
+long_description	= ( here / 'README.rst' ).read_text( encoding='utf-8' )
 
 setup(
 	name="audiogen",
@@ -25,11 +26,10 @@ setup(
 	tests_require=["nose"],
 	test_suite="nose.collector",
 
-	long_description=readme,
+	long_description=long_description,
 	classifiers=[
 		"License :: OSI Approved :: BSD License",
-		"Programming Language :: Python :: 2.6",
-		"Programming Language :: Python :: 2.7",
+		"Programming Language :: Python :: 3.9",
 		"Intended Audience :: Developers",
 		"Topic :: Multimedia :: Sound/Audio",
 	]
