@@ -9,64 +9,80 @@ updated to work with Python3 since the original package has been unmaintained
 for a few years. The only modifications to this package were to allow use
 in Python 3. The remainder of the code is all original work by Christopher H. Casebeer
 
-This makes some types of audio sample generation and processing pretty 
+To use audiogen_p3 in a more readable way and without changing existing
+audiogen code, import audiogen_p3 this way:
+
+    import audiogen_p3 as audiogen
+
+This is required for the examples in the documentation.
+
+If "AttributeError: module 'audiogen_p3' has no attribute 'mixer'",
+skip past mixer examples to the audiogen.sampler.play examples. To
+enable more features using optional dependencies, see the Installation
+section.
+
+This module makes some types of audio sample generation and processing pretty 
 easy::
 
-	# mix 440 Hz and 445 Hz tones to get 5 Hz beating
-	beats = audiogen_p3.mixer(
-		(audiogen_p3.tone(440), audiogen_p3.tone(445)),
-		[(constant(1), constant(1)),]
-	)
+    # mix 440 Hz and 445 Hz tones to get 5 Hz beating
+    beats = audiogen.mixer(
+        (audiogen.tone(440), audiogen.tone(445)),
+        [(constant(1), constant(1)),]
+    )
 
 The actual samples won't be generated or stored in memory until they're 
 actually consumed – for instance, when they're being written out to disk 
 in a wave \file::
 
     with open("output.wav", "wb") as f:
-        audiogen_p3.sampler.write_wav(f, beats)
+        audiogen.sampler.write_wav(f, beats)
 
 Generators' at-consumption-time computation also allows creating 
-infinitely long output, e.g. to stream to speakers rather than a file on
+**infinitely long output**, e.g. to stream to speakers rather than a file on
 disk::
 
-    audiogen_p3.sampler.write_wav(sys.stdout, audiogen_p3.tone(440))
+    audiogen.sampler.write_wav(sys.stdout, audiogen.tone(440))
 
 Or just::
 
-    audiogen_p3.sampler.play(audiogen_p3.tone(440))
+    audiogen.sampler.play(audiogen.tone(440))
 
 You can also use standard generator tools, e.g. the itertools module, to 
 handle audio data::
 
-	beep_silence = itertools.chain(audiogen_p3.beep(), audiogen_p3.silence(0.5))
-	infinite_beeps = itertools.cycle(beep_silence)
+    beep_silence = itertools.chain(audiogen.beep(), audiogen.silence(0.5))
+    infinite_beeps = itertools.cycle(beep_silence)
     
-    audiogen_p3.sampler.write_wav(sys.stdout, infinite_beeps)
-	
+    audiogen.sampler.write_wav(sys.stdout, infinite_beeps)
+    
 Soundcard output
 ----------------
 
 The easiest way to play directly to a soundcard output is to use the 
-``audiogen_p3.sampler.play`` function, which will play your samples using 
+``audiogen.sampler.play`` function, which will play your samples using 
 PyAudio::
 
-    import audiogen_p3
+    import audiogen_p3 as audiogen
     import itertools
     import sys
+
+    audiogen.sampler.play(audiogen.beep(frequency=440, seconds=0.25))
+
+    # or make an infinite generator alternating between beep and silence:
     
-    audiogen_p3.sampler.play(
-        itertools.cycle(itertools.chain(audiogen_p3.beep(), audiogen_p3.silence(0.5)))
+    audiogen.sampler.play(
+        itertools.cycle(itertools.chain(audiogen.beep(), audiogen.silence(0.5)))
     )
 
 Alternatively, you could write your wave data to ``stdout``, e.g. ``myaudio.py``::
 
-    import audiogen_p3
+    import audiogen_p3 as audiogen
     import itertools
     import sys
     
-    audiogen_p3.sampler.write_wav(
+    audiogen.sampler.write_wav(
         sys.stdout,
-        itertools.cycle(itertools.chain(audiogen_p3.beep(), audiogen_p3.silence(0.5)))
+        itertools.cycle(itertools.chain(audiogen.beep(), audiogen.silence(0.5)))
     )
 
 Then pipe to a command line audio player like Sox_::
@@ -78,14 +94,14 @@ Installation
 
 Install with::
 
-    $ pip install audiogen_p3
-    $ pip install --allow-external PyAudio --allow-unverified PyAudio PyAudio
+    $ python3 -m pip install audiogen_p3
+    $ python3 -m pip install --allow-external PyAudio --allow-unverified PyAudio PyAudio
 
 PyAudio is optional. If it's not installed, playing audio via the soundcard with
 ``audiogen_p3.sampler.play()`` will not be available, but generating Wave files – 
 including for piping to an external player, like ``sox`` – will work just fine. 
 
-Note that to install PyAudio on Mac OS X, you'll need to first install `portaudio`::
+Note that to install PyAudio on Mac OS X, you'll need to first install ``portaudio``::
 
     $ brew install portaudio
 
